@@ -1,5 +1,5 @@
 [project]
-authors = ["Harsh"]
+authors = ["Authentix"]
 entry = "main.sw"
 license = "Apache-2.0"
 name = "core"
