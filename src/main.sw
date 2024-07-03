@@ -37,6 +37,8 @@ impl Authentix for Contract {
     #[payable]
     #[storage(read, write)]
     fn deposit() {
+        let cur_stat = storage.statuses.get(msg_sender().unwrap()).try_read().unwrap_or(false);
+        require(cur_stat == false, "you already paid the premium");
         require(msg_asset_id() == AssetId::base(), "not base asset");
         require(msg_amount() > 0, "amount = 0");
         storage.statuses.insert(msg_sender().unwrap(), true);
@@ -44,7 +46,9 @@ impl Authentix for Contract {
     
     #[storage(read)]
     fn withdraw(amount: u64) {
-        require(msg_sender().unwrap() == Identity::Address(storage.treasury.try_read().unwrap_or(Address::from(0x19a0cef7d3e389890590bd41ddca75e834a267a15a8ea5ac03f4e45006378200))), "only treasury can call");
+        let tsry = storage.treasury.try_read().unwrap();
+        require(tsry == Address::from(0x19a0cef7d3e389890590bd41ddca75e834a267a15a8ea5ac03f4e45006378200), "treasury undefined");
+        require(msg_sender().unwrap() == Identity::Address(tsry), "only treasury can call");
         transfer(msg_sender().unwrap(), AssetId::base(), amount);
     }
  
