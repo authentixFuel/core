@@ -25,8 +25,10 @@ abi Authentix {
     #[storage(read, write)]
     fn withdraw(amount: u64);
     #[storage(read)]
-    fn show_treasury() -> (u64, u64);
-    #[storage(read, write)]
+    fn show_treasury_state() -> (u64, u64);
+    #[storage(read)]
+    fn show_treasury() -> Address;
+    #[storage(read)]
     fn get_status() -> bool;
 }
 
@@ -49,7 +51,7 @@ impl Authentix for Contract {
         let current_amt = storage.total_transferred.try_read().unwrap_or(0);
         storage.total_transferred.write(current_amt + msg_amount());
     }
-    
+
     #[storage(read, write)]
     fn withdraw(amount: u64) {
         let tsry = storage.treasury.try_read().unwrap();
@@ -59,15 +61,22 @@ impl Authentix for Contract {
         let current_wtd = storage.total_withdrawn.try_read().unwrap_or(0);
         storage.total_withdrawn.write(current_wtd + amount);
     }
-    
+
     #[storage(read)]
-    fn show_treasury() -> (u64, u64) {
+    fn show_treasury_state() -> (u64, u64) {
         let tt = storage.total_transferred.try_read().unwrap_or(0);
         let tw = storage.total_withdrawn.try_read().unwrap_or(0);
         return (tt, tw);
     }
- 
-    #[storage(read, write)]
+
+    #[storage(read)]
+    fn show_treasury() -> Address {
+        let tr = storage.treasury.try_read().unwrap_or(Address::from(0x0000000000000000000000000000000000000000000000000000000000000000));
+        require(tr != Address::from(0x0000000000000000000000000000000000000000000000000000000000000000), "treasury not set");
+        return tr;
+    }
+
+    #[storage(read)]
     fn get_status() -> bool {
         let val = storage.statuses.get(msg_sender().unwrap()).try_read().unwrap_or(false);
         return val;
